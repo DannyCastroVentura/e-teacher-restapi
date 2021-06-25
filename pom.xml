@@ -101,20 +101,12 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-war-plugin</artifactId>
-                    <version>3.3.1</version>
+                    <artifactId>maven-compiler-plugin</artifactId>
                     <configuration>
-                        <failOnMissingWebXml>false</failOnMissingWebXml>
+                        <source>1.8</source>
+                        <target>1.8</target>
                     </configuration>
                 </plugin>
-                <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>15</source>
-                    <target>15</target>
-                </configuration>
-            </plugin>
                 <plugin>
                     <groupId>org.wildfly.plugins</groupId>
                     <artifactId>wildfly-maven-plugin</artifactId>
