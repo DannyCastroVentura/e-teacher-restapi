@@ -1,2 +1,2 @@
-web: java -war target/FinalProject.war
 
+web: sh target/FinalProject.war
