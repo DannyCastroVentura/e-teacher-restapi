@@ -124,13 +124,6 @@ public class AlunosApi extends HttpServlet {
         {
             alterarBoolean(emailFixed, con, jsonBuilder, "estado", true);
         }else {
-            if(body.containsKey("password") && body.containsKey("oldPassword")) {
-                String password = body.getString("password");
-                String oldPassword = body.getString("oldPassword");
-                String passwordFixed = new String(password.getBytes(fromCharset), toCharset);
-                String oldPasswordFixed = new String(oldPassword.getBytes(fromCharset), toCharset);
-                alterarPassword(jsonBuilder, emailFixed, passwordFixed, oldPasswordFixed, con);
-            }
             if(body.containsKey("nome")){
                 String nome = body.getString("nome");
                 String nomeFixed = new String(nome.getBytes(fromCharset), toCharset);
@@ -139,6 +132,11 @@ public class AlunosApi extends HttpServlet {
             if(body.containsKey("numeroDeAluno")){
                 int numeroDeAluno = body.getInt("numeroDeAluno");
                 alterarInt(jsonBuilder, emailFixed, numeroDeAluno, con, "numeroDeAluno");
+            }
+            if(body.containsKey("password")){
+                String password = body.getString("password");
+                String fixed = new String(password.getBytes(fromCharset), toCharset);
+                alterarString(jsonBuilder, emailFixed, fixed, con, "password");
             }
         }
 
@@ -150,26 +148,6 @@ public class AlunosApi extends HttpServlet {
     }
 
 
-    private void alterarPassword(JsonObjectBuilder jsonBuilder, String email, String password, String oldPassword, Conection con) {
-        System.out.println("Entrou no menu para alterar a password de 1 aluno");
-        String sql = "SELECT * FROM alunos WHERE email = '" + email + "' and password = '" + oldPassword + "'";
-        ResultSet rs = con.selectSQL(sql);
-        try {
-            if(rs.next()) {
-                sql = "UPDATE alunos SET password = '" + password + "' WHERE email = '" + email + "'";
-                int res = con.executeSQL(sql);
-                if (res > 0) {
-                    jsonBuilder.add("info", "Password alterada com sucesso!");
-                } else {
-                    jsonBuilder.add("info", "Aconteceu algum erro");
-                }
-            }else{
-                jsonBuilder.add("info", "Nao existe nenhum aluno com esse email!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
 
     private void alterarString(JsonObjectBuilder jsonBuilder, String email, String string, Conection con, String campo) {

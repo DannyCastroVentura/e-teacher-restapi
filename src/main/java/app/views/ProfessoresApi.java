@@ -61,7 +61,7 @@ public class ProfessoresApi extends HttpServlet {
         String passwordFixed = new String(password.getBytes(fromCharset), toCharset);
         String nomeFixed = new String(nome.getBytes(fromCharset), toCharset);
         registar(emailFixed, passwordFixed, nomeFixed, con, jsonBuilder);
-        
+
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
         jsonWriter.writeObject(jsonBuilder.build());
@@ -86,7 +86,7 @@ public class ProfessoresApi extends HttpServlet {
         if(!body.containsKey("fotoPerfil") && !body.containsKey("fotoFundo") && !body.containsKey("password") && !body.containsKey("nome") && !body.containsKey("resumo") && !body.containsKey("exp") && !body.containsKey("idArea"))
         {
             alterarBoolean(emailFixed, con, jsonBuilder, "estado", true);
-        }else {
+        }else{
 
             if(body.containsKey("fotoPerfil")) {
                 String fotoPerfil = body.getString("fotoPerfil");
@@ -129,6 +129,8 @@ public class ProfessoresApi extends HttpServlet {
 
 
     }
+
+
 
 
     private void alterarString(JsonObjectBuilder jsonBuilder, String email, String string, boolean seEFoto, Conection con, String campo) {
