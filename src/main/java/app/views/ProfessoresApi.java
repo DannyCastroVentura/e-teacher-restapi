@@ -83,7 +83,7 @@ public class ProfessoresApi extends HttpServlet {
 
         String email = body.getString("email");
         String emailFixed = new String(email.getBytes(fromCharset), toCharset);
-        if(!body.containsKey("fotoPerfil") && !body.containsKey("fotoFundo") && !body.containsKey("password") && !body.containsKey("nome") && !body.containsKey("resumo") && !body.containsKey("exp") && !body.containsKey("idArea"))
+        if(!body.containsKey("fotoPerfil") && !body.containsKey("fotoFundo") && !body.containsKey("password") && !body.containsKey("nome") && !body.containsKey("resumo") && !body.containsKey("exp") && !body.containsKey("idArea") && !body.containsKey("orcidId"))
         {
             alterarBoolean(emailFixed, con, jsonBuilder, "estado", true);
         }else{
@@ -121,6 +121,14 @@ public class ProfessoresApi extends HttpServlet {
                 int idArea = body.getInt("idArea");
                 alterarInt(jsonBuilder, emailFixed, idArea, con, "idArea");
             }
+
+            if(body.containsKey("orcidId")){
+                System.out.println("vai alterar o orcidId");
+                String orcidId = body.getString("orcidId");
+                String fixed = new String(orcidId.getBytes(fromCharset), toCharset);
+                alterarString(jsonBuilder, emailFixed, fixed, false, con, "orcidId");
+            }
+
         }
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
@@ -266,6 +274,7 @@ public class ProfessoresApi extends HttpServlet {
         String resumoPresenteNaBaseDeDados = rs.getString("resumo");
         int expPresenteNaBaseDeDados = rs.getInt("exp");
         String idAreaPresenteNaBaseDeDados = rs.getString("idArea");
+        String orcidIdPresenteNaBaseDeDados = rs.getString("orcidId");
         if(fotoPerfilPresenteNaBaseDeDados == null){
             fotoPerfilPresenteNaBaseDeDados = "https://www.legal-tech.de/wp-content/uploads/Profilbild-Platzhalter.png";
         }
@@ -277,6 +286,9 @@ public class ProfessoresApi extends HttpServlet {
         }
         if(idAreaPresenteNaBaseDeDados == null){
             idAreaPresenteNaBaseDeDados = "";
+        }
+        if(orcidIdPresenteNaBaseDeDados == null){
+            orcidIdPresenteNaBaseDeDados = "";
         }
 
 
@@ -290,7 +302,8 @@ public class ProfessoresApi extends HttpServlet {
                 .add("fotoFundo", fotoFundoPresenteNaBaseDeDados)
                 .add("resumo", resumoPresenteNaBaseDeDados)
                 .add("exp", expPresenteNaBaseDeDados)
-                .add("idArea", idAreaPresenteNaBaseDeDados).build();
+                .add("idArea", idAreaPresenteNaBaseDeDados)
+                .add("orcidId", orcidIdPresenteNaBaseDeDados).build();
 
         jsonArrayBuilder.add(usersJson);
     }
