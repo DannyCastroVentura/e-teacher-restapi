@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 @WebServlet("/professores/*")
 public class ProfessoresApi extends HttpServlet {
@@ -18,8 +19,8 @@ public class ProfessoresApi extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         System.out.println(req.toString());
-        String[] split = req.toString().split("/", 4);
-
+        String[] split = req.toString().split("/", 5);
+        System.out.println(Arrays.toString(split));
         resp.setContentType("application/json");
         resp.setHeader("Access-Control-Allow-Origin", req.getHeader("origin"));
         resp.addHeader("Access-Control-Allow-Credentials", "true");
@@ -28,8 +29,12 @@ public class ProfessoresApi extends HttpServlet {
         System.out.println("This is the Connection: " + con);
 
         JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
-        if(split.length == 4){
-            mostrarUmUser(split[3], con, jsonBuilder, false);
+        if(split.length > 3){
+            if(split.length > 4){
+                mostrarPasswordDeUmUser(split[3], con, jsonBuilder);
+            }else{
+                mostrarUmUser(split[3], con, jsonBuilder, false);
+            }
         }else{
             mostrarTodosOsUsers(con, jsonBuilder, false);
         }
@@ -138,6 +143,24 @@ public class ProfessoresApi extends HttpServlet {
 
     }
 
+
+    private void mostrarPasswordDeUmUser(String split, Conection con, JsonObjectBuilder jsonBuilder){
+        String[] split3 = split.split(" ", 2);
+        String[] split4 = split3[0].split("/", 2);
+        String email = split4[0];
+        System.out.println("Entrou no menu para mostrar a password de 1 professor");
+        String sql = "SELECT * FROM professores WHERE email = '" + email + "'";
+        System.out.println(split);
+        ResultSet rs = con.selectSQL(sql);
+        try {
+            while(rs.next()) {
+                System.out.println(rs.getString("password"));
+                jsonBuilder.add("password", rs.getString("password"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
 

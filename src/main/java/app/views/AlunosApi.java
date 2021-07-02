@@ -20,7 +20,7 @@ public class AlunosApi extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         System.out.println(req.toString());
-        String[] split = req.toString().split("/", 4);
+        String[] split = req.toString().split("/", 5);
 
 
         resp.setContentType("application/json");
@@ -34,34 +34,36 @@ public class AlunosApi extends HttpServlet {
         System.out.println("antes do numero aluno");
 
 
-            if(split.length == 4){
+            if(split.length > 3){
                 String[] split3 = split[3].split(" ", 2);
                 String texto = split3[0];
-                if(!texto.contains("@"))
-                {
-                    System.out.println("É um numero: " + texto);
-                    int numeroAluno = parseInt(texto);
-                    String sql = "SELECT * FROM alunos WHERE numeroDeAluno = " + numeroAluno;
-                    ResultSet rs = con.selectSQL(sql);
-                    JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
-                    try {
-                        boolean existe = false;
-                        while(rs.next()){
-                            showUser(rs, jsonArrayBuilder);
-                            jsonBuilder.add("alunos", jsonArrayBuilder);
-                            existe = true;
+                if(split.length > 4){
+                    mostrarPasswordDeUmUser(split[3], con, jsonBuilder);
+                }else {
+                    if (!texto.contains("@")) {
+                        System.out.println("É um numero: " + texto);
+                        int numeroAluno = parseInt(texto);
+                        String sql = "SELECT * FROM alunos WHERE numeroDeAluno = " + numeroAluno;
+                        ResultSet rs = con.selectSQL(sql);
+                        JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+                        try {
+                            boolean existe = false;
+                            while (rs.next()) {
+                                showUser(rs, jsonArrayBuilder);
+                                jsonBuilder.add("alunos", jsonArrayBuilder);
+                                existe = true;
+                            }
+                            if (!existe) {
+                                jsonBuilder.add("info", "Numero inexistente!");
+                            }
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
                         }
-                        if(!existe){
-                            jsonBuilder.add("info", "Numero inexistente!");
-                        }
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
+                    } else {
+                        System.out.println("Não é um numero: " + texto);
+                        mostrarUmUser(split[3], con, jsonBuilder, false);
                     }
-                }else{
-                    System.out.println("Não é um numero: " + texto);
-                    mostrarUmUser(split[3], con, jsonBuilder, false);
                 }
-
 
             }else{
                 mostrarTodosOsUsers(con, jsonBuilder, false);
@@ -149,6 +151,23 @@ public class AlunosApi extends HttpServlet {
 
 
 
+    private void mostrarPasswordDeUmUser(String split, Conection con, JsonObjectBuilder jsonBuilder){
+        String[] split3 = split.split(" ", 2);
+        String[] split4 = split3[0].split("/", 2);
+        String email = split4[0];
+        System.out.println("Entrou no menu para mostrar a password de 1 aluno");
+        String sql = "SELECT * FROM alunos WHERE email = '" + email + "'";
+        System.out.println(split);
+        ResultSet rs = con.selectSQL(sql);
+        try {
+            while(rs.next()) {
+                System.out.println(rs.getString("password"));
+                jsonBuilder.add("password", rs.getString("password"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private void alterarString(JsonObjectBuilder jsonBuilder, String email, String string, Conection con, String campo) {
         System.out.println("Entrou no menu para alterar o campo " + campo + " de 1 professor");
