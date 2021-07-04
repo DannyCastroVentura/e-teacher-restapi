@@ -150,6 +150,45 @@ public class AlunosApi extends HttpServlet {
     }
 
 
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        System.out.println("chegou ao doDelete");
+        JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+        JsonObject body = Json.createReader(req.getReader()).readObject();
+        resp.setContentType("application/json");
+        resp.setHeader("Access-Control-Allow-Origin", req.getHeader("origin"));
+        resp.addHeader("Access-Control-Allow-Credentials", "true");
+        Conection con = new Conection();
+
+        final Charset fromCharset = Charset.forName("windows-1252");
+        final Charset toCharset = StandardCharsets.UTF_8;
+
+        String email = body.getString("email");
+        String emailFixed = new String(email.getBytes(fromCharset), toCharset);
+        System.out.println(emailFixed);
+        apagarAluno(jsonBuilder, emailFixed, con);
+
+        JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
+        jsonWriter.writeObject(jsonBuilder.build());
+        jsonWriter.close();
+
+    }
+
+    private void apagarAluno(JsonObjectBuilder jsonBuilder, String email, Conection con) {
+        System.out.println("Entrou no menu para apagar um aluno");
+        String sql = "DELETE FROM alunos WHERE email = '" + email + "'";
+        int res = con.executeSQL(sql);
+        try {
+            if (res > 0) {
+                jsonBuilder.add("info", " Aluno eliminado com sucesso!");
+            } else {
+                jsonBuilder.add("info", "Aluno não existente!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private void mostrarPasswordDeUmUser(String split, Conection con, JsonObjectBuilder jsonBuilder){
         String[] split3 = split.split(" ", 2);

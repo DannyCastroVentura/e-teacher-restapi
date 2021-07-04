@@ -144,6 +144,30 @@ public class ProfessoresApi extends HttpServlet {
     }
 
 
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+
+        JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+        JsonObject body = Json.createReader(req.getReader()).readObject();
+        resp.setContentType("application/json");
+        resp.setHeader("Access-Control-Allow-Origin", req.getHeader("origin"));
+        resp.addHeader("Access-Control-Allow-Credentials", "true");
+        Conection con = new Conection();
+
+        final Charset fromCharset = Charset.forName("windows-1252");
+        final Charset toCharset = StandardCharsets.UTF_8;
+
+        String email = body.getString("email");
+        String emailFixed = new String(email.getBytes(fromCharset), toCharset);
+
+        apagarProfessor(jsonBuilder, emailFixed, con);
+
+        JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
+        jsonWriter.writeObject(jsonBuilder.build());
+        jsonWriter.close();
+
+    }
+
     private void mostrarPasswordDeUmUser(String split, Conection con, JsonObjectBuilder jsonBuilder){
         String[] split3 = split.split(" ", 2);
         String[] split4 = split3[0].split("/", 2);
@@ -162,6 +186,22 @@ public class ProfessoresApi extends HttpServlet {
         }
     }
 
+
+
+    private void apagarProfessor(JsonObjectBuilder jsonBuilder, String email, Conection con) {
+        System.out.println("Entrou no menu para apagar um professor");
+        String sql = "DELETE FROM professores WHERE email = '" + email + "'";
+        int res = con.executeSQL(sql);
+        try {
+            if (res > 0) {
+                jsonBuilder.add("info", " Professor eliminado com sucesso!");
+            } else {
+                jsonBuilder.add("info", "Professor não existente!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
     private void alterarString(JsonObjectBuilder jsonBuilder, String email, String string, boolean seEFoto, Conection con, String campo) {
