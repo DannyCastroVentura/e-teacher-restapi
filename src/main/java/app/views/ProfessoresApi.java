@@ -127,11 +127,22 @@ public class ProfessoresApi extends HttpServlet {
                 alterarInt(jsonBuilder, emailFixed, idArea, con, "idArea");
             }
 
+            if(body.containsKey("estado")){
+                boolean estado = body.getBoolean("estado");
+                alterarBoolean(emailFixed, con, jsonBuilder, "estado", estado);
+            }
+
             if(body.containsKey("orcidId")){
                 System.out.println("vai alterar o orcidId");
                 String orcidId = body.getString("orcidId");
                 String fixed = new String(orcidId.getBytes(fromCharset), toCharset);
                 alterarString(jsonBuilder, emailFixed, fixed, false, con, "orcidId");
+            }
+
+            if(body.containsKey("emailNovo")){
+                String emailNovo = body.getString("emailNovo");
+                String fixedEmailNovo = new String(emailNovo.getBytes(fromCharset), toCharset);
+                alterarString(jsonBuilder, emailFixed, fixedEmailNovo, false, con, "email");
             }
 
         }

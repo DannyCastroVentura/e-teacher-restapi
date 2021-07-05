@@ -19,7 +19,7 @@ public class AdminApi extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         System.out.println(req.toString());
-        String[] split = req.toString().split("/", 4);
+        String[] split = req.toString().split("/", 5);
         System.out.println(Arrays.toString(split));
         resp.setContentType("application/json");
         resp.setHeader("Access-Control-Allow-Origin", req.getHeader("origin"));
@@ -30,7 +30,12 @@ public class AdminApi extends HttpServlet {
 
         JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
         if(split.length > 3){
-            mostrarUmUser(split[3], con, jsonBuilder, false);
+            if(split.length > 4){
+                System.out.println(split[3]);
+                mostrarPasswordDeUmUser(split[3], con, jsonBuilder);
+            }else {
+                mostrarUmUser(split[3], con, jsonBuilder, false);
+            }
         }else{
             mostrarTodosOsUsers(con, jsonBuilder, false);
         }
@@ -88,12 +93,17 @@ public class AdminApi extends HttpServlet {
         if(body.containsKey("password")){
             String password = body.getString("password");
             String fixed = new String(password.getBytes(fromCharset), toCharset);
-            alterarString(jsonBuilder, emailFixed, fixed, false, con, "password");
+            alterarString(jsonBuilder, emailFixed, fixed,  con, "password");
         }
         if(body.containsKey("nome")){
             String nome = body.getString("nome");
             String fixed = new String(nome.getBytes(fromCharset), toCharset);
-            alterarString(jsonBuilder, emailFixed, fixed, false, con, "nome");
+            alterarString(jsonBuilder, emailFixed, fixed, con, "nome");
+        }
+        if(body.containsKey("emailNovo")){
+            String emailNovo = body.getString("emailNovo");
+            String fixed = new String(emailNovo.getBytes(fromCharset), toCharset);
+            alterarString(jsonBuilder, emailFixed, fixed, con, "email");
         }
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
@@ -141,18 +151,30 @@ public class AdminApi extends HttpServlet {
         }
     }
 
+    private void mostrarPasswordDeUmUser(String split, Conection con, JsonObjectBuilder jsonBuilder){
+        String[] split3 = split.split(" ", 2);
+        String[] split4 = split3[0].split("/", 2);
+        String email = split4[0];
+        System.out.println("Entrou no menu para mostrar a password de 1 admin");
+        String sql = "SELECT * FROM admin WHERE email = '" + email + "'";
+        ResultSet rs = con.selectSQL(sql);
+        try {
+            while(rs.next()) {
+                System.out.println(rs.getString("password"));
+                jsonBuilder.add("password", rs.getString("password"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-    private void alterarString(JsonObjectBuilder jsonBuilder, String email, String string, boolean seEFoto, Conection con, String campo) {
+    private void alterarString(JsonObjectBuilder jsonBuilder, String email, String string, Conection con, String campo) {
         System.out.println("Entrou no menu para alterar o campo " + campo + " de 1 admin");
         String sql = "SELECT * FROM admin WHERE email = '" + email + "'";
         ResultSet rs = con.selectSQL(sql);
         try {
             if(rs.next()) {
                 sql = "UPDATE admin SET " + campo + " = '" + string + "' WHERE email = '" + email + "'";
-                if(seEFoto && string.contentEquals(""))
-                {
-                    sql = "UPDATE admin SET " + campo + " = null WHERE email = '" + email + "'";
-                }
                 int res = con.executeSQL(sql);
                 if (res > 0) {
                     jsonBuilder.add("info", campo + " alterado(a) com sucesso!");

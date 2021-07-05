@@ -140,6 +140,15 @@ public class AlunosApi extends HttpServlet {
                 String fixed = new String(password.getBytes(fromCharset), toCharset);
                 alterarString(jsonBuilder, emailFixed, fixed, con, "password");
             }
+            if(body.containsKey("estado")){
+                boolean estado = body.getBoolean("estado");
+                alterarBoolean(emailFixed, con, jsonBuilder, "estado", estado);
+            }
+            if(body.containsKey("emailNovo")){
+                String emailNovo = body.getString("emailNovo");
+                String fixed = new String(emailNovo.getBytes(fromCharset), toCharset);
+                alterarString(jsonBuilder, emailFixed, fixed, con, "email");
+            }
         }
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
