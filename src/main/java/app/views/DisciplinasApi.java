@@ -6,6 +6,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -57,13 +59,10 @@ public class DisciplinasApi extends HttpServlet {
         resp.addHeader("Access-Control-Allow-Credentials", "true");
         Conection con = new Conection();
 
-        String email = body.getString("email");
-
         System.out.println("Entrou no inserir");
-        String password = body.getString("password");
+        String sigla = body.getString("sigla");
         String nome = body.getString("nome");
-        int numeroDeAluno = body.getInt("numeroDeAluno");
-        registar(email, password, nome, numeroDeAluno, con, jsonBuilder);
+        registar(sigla, nome, con, jsonBuilder);
 
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
@@ -80,39 +79,20 @@ public class DisciplinasApi extends HttpServlet {
         resp.setHeader("Access-Control-Allow-Origin", req.getHeader("origin"));
         resp.addHeader("Access-Control-Allow-Credentials", "true");
         Conection con = new Conection();
-        String email = body.getString("email");
-        if(!body.containsKey("fotoPerfil") && !body.containsKey("fotoFundo") && !body.containsKey("password") && !body.containsKey("nome") && !body.containsKey("resumo") && !body.containsKey("exp") && !body.containsKey("idArea"))
-        {
-            alterarBoolean(email, con, jsonBuilder, "estado", true);
-        }else {
-            if(body.containsKey("fotoPerfil")) {
-                String fotoPerfil = body.getString("fotoPerfil");
-                alterarString(jsonBuilder, email, fotoPerfil, con, "fotoPerfil");
-            }
-            if(body.containsKey("fotoFundo")){
-                String fotoFundo = body.getString("fotoFundo");
-                alterarString(jsonBuilder, email, fotoFundo, con, "fotoFundo");
-            }
-            if(body.containsKey("password")){
-                String password = body.getString("password");
-                alterarString(jsonBuilder, email, password, con, "password");
-            }
-            if(body.containsKey("nome")){
-                String nome = body.getString("nome");
-                alterarString(jsonBuilder, email, nome, con, "nome");
-            }
-            if(body.containsKey("resumo")){
-                String resumo = body.getString("resumo");
-                alterarString(jsonBuilder, email, resumo, con, "resumo");
-            }
-            if(body.containsKey("exp")){
-                String exp = body.getString("exp");
-                alterarString(jsonBuilder, email, exp, con, "exp");
-            }
-            if(body.containsKey("idArea")){
-                int idArea = body.getInt("idArea");
-                alterarInt(jsonBuilder, email, idArea, con, "idArea");
-            }
+
+        final Charset fromCharset = Charset.forName("windows-1252");
+        final Charset toCharset = StandardCharsets.UTF_8;
+
+        int id = body.getInt("id");
+        if(body.containsKey("sigla")) {
+            String sigla = body.getString("sigla");
+            String fixed = new String(sigla.getBytes(fromCharset), toCharset);
+            alterarString(jsonBuilder, id, fixed, con, "sigla");
+        }
+        if(body.containsKey("nome")){
+            String nome = body.getString("nome");
+            String fixed = new String(nome.getBytes(fromCharset), toCharset);
+            alterarString(jsonBuilder, id, fixed, con, "nome");
         }
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
@@ -122,14 +102,49 @@ public class DisciplinasApi extends HttpServlet {
 
     }
 
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        System.out.println("chegou ao doDelete");
+        JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+        JsonObject body = Json.createReader(req.getReader()).readObject();
+        resp.setContentType("application/json");
+        resp.setHeader("Access-Control-Allow-Origin", req.getHeader("origin"));
+        resp.addHeader("Access-Control-Allow-Credentials", "true");
+        Conection con = new Conection();
 
-    private void alterarString(JsonObjectBuilder jsonBuilder, String email, String string, Conection con, String campo) {
-        System.out.println("Entrou no menu para alterar o campo " + campo + " de 1 professor");
-        String sql = "SELECT * FROM professores WHERE email = '" + email + "'";
+
+        int id = body.getInt("id");
+        apagarDisciplina(jsonBuilder, id, con);
+
+        JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
+        jsonWriter.writeObject(jsonBuilder.build());
+        jsonWriter.close();
+
+    }
+
+
+    private void apagarDisciplina(JsonObjectBuilder jsonBuilder, int id, Conection con) {
+        System.out.println("Entrou no menu para apagar um disciplina");
+        String sql = "DELETE FROM disciplinas WHERE idDisciplinas = " + id;
+        int res = con.executeSQL(sql);
+        try {
+            if (res > 0) {
+                jsonBuilder.add("info", " disciplina eliminada com sucesso!");
+            } else {
+                jsonBuilder.add("info", "disciplina não existente!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void alterarString(JsonObjectBuilder jsonBuilder, int id , String string, Conection con, String campo) {
+        System.out.println("Entrou no menu para alterar o campo " + campo + " de 1 disciplina");
+        String sql = "SELECT * FROM diciplinas WHERE idDisciplinas = " + id;
         ResultSet rs = con.selectSQL(sql);
         try {
             if(rs.next()) {
-                sql = "UPDATE professores SET " + campo + " = '" + string + "' WHERE email = '" + email + "'";
+                sql = "UPDATE diciplinas SET " + campo + " = '" + string + "' WHERE idDisciplinas = " + id;
                 int res = con.executeSQL(sql);
                 if (res > 0) {
                     jsonBuilder.add("info", campo + " alterado(a) com sucesso!");
@@ -137,7 +152,7 @@ public class DisciplinasApi extends HttpServlet {
                     jsonBuilder.add("info", "Aconteceu algum erro");
                 }
             }else{
-                jsonBuilder.add("info", "Nao existe nenhum professor com esse email!");
+                jsonBuilder.add("info", "Nao existe nenhuma disciplina com esse id!");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -145,53 +160,19 @@ public class DisciplinasApi extends HttpServlet {
     }
 
 
-
-
-    private void alterarInt(JsonObjectBuilder jsonBuilder, String email, int integer, Conection con, String campo) {
-        System.out.println("Entrou no menu para alterar a foto de perfil de 1 user");
-        String sql = "SELECT * FROM professores WHERE email = '" + email + "'";
-        ResultSet rs = con.selectSQL(sql);
-        try {
-            if(rs.next()) {
-                sql = "UPDATE professores SET " + campo + " = " + integer + " WHERE email = '" + email + "'";
-                int res = con.executeSQL(sql);
-                if (res > 0) {
-                    jsonBuilder.add("info", campo + " alterado(a) com sucesso!");
-                } else {
-                    jsonBuilder.add("info", "Aconteceu algum erro");
-                }
-            }else{
-                jsonBuilder.add("info", "Nao existe nenhum professor com esse email!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void registar(String email, String password, String nome, int numeroDeAluno, Conection con, JsonObjectBuilder jsonBuilder) {
-        //Inserir um user
-        System.out.println("Entrou no menu para registar conta");
-        String sql = "INSERT INTO alunos (email, password, nome, numeroDeAluno, estado) values " +
-                "('" + email + "', '" + password + "', '" + nome + "', '" + numeroDeAluno + "', default)";
+    private void registar(String sigla, String nome, Conection con, JsonObjectBuilder jsonBuilder) {
+        //Inserir uma disciplina
+        System.out.println("Entrou no menu para registar uma disciplina");
+        String sql = "INSERT INTO disciplinas (sigla, nome) values " +
+                "('" + sigla + "', '" + nome + "')";
         int res = con.executeSQL(sql);
         if (res > 0) {
-            jsonBuilder.add("info", "Aluno registado com sucesso!");
+            jsonBuilder.add("info", "Disciplina registada com sucesso!");
         } else {
             jsonBuilder.add("info", "Aconteceu algum erro");
         }
     }
 
-    private void alterarBoolean(String email, Conection con, JsonObjectBuilder jsonBuilder, String campo, boolean valor) {
-        //alterar um user
-        System.out.println("Entrou no menu para alterar conta");
-        String sql = "UPDATE alunos SET " + campo  + " = " + valor + " WHERE email = '" + email + "'";
-        int res = con.executeSQL(sql);
-        if (res > 0) {
-            jsonBuilder.add("info", "Aluno alterado com sucesso!");
-        } else {
-            jsonBuilder.add("info", "Aconteceu algum erro");
-        }
-    }
 
     private void mostrarTodasAsDisciplinas(Conection con, JsonObjectBuilder jsonBuilder, boolean existe) {
         System.out.println("Entrou no menu para mostrar todas as disciplinas");
