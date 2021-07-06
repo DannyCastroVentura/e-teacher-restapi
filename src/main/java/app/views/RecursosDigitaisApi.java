@@ -50,7 +50,6 @@ public class RecursosDigitaisApi extends HttpServlet {
         final Charset fromCharset = Charset.forName("windows-1252");
         final Charset toCharset = StandardCharsets.UTF_8;
 
-        int id = body.getInt("id");
         String email = body.getString("email");
         String descricao = body.getString("descricao");
         String url = body.getString("url");
@@ -108,11 +107,8 @@ public class RecursosDigitaisApi extends HttpServlet {
         resp.setHeader("Access-Control-Allow-Origin", req.getHeader("origin"));
         resp.addHeader("Access-Control-Allow-Credentials", "true");
         Conection con = new Conection();
-        if(body.containsKey("id") && body.containsKey("email")){
-            int id = body.getInt("id");
-            String professorEmail = body.getString("email");
-            eliminarTrabalho(id, professorEmail, con, jsonBuilder);
-        }
+        int id = body.getInt("id");
+        eliminarRecursoDigital(id, con, jsonBuilder);
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
         jsonWriter.writeObject(jsonBuilder.build());
         jsonWriter.close();
@@ -122,22 +118,22 @@ public class RecursosDigitaisApi extends HttpServlet {
 
 
 
-    private void eliminarTrabalho(int id, String email, Conection con, JsonObjectBuilder jsonBuilder) {
-        System.out.println("Entrou no menu para eliminar o ProjetosInvestigacao " + id);
-        String sql = "SELECT * FROM ProjetosInvestigacao WHERE id = " + id;
+    private void eliminarRecursoDigital(int id, Conection con, JsonObjectBuilder jsonBuilder) {
+        System.out.println("Entrou no menu para eliminar o recursosDigitais " + id);
+        String sql = "SELECT * FROM recursosDigitais WHERE id = " + id;
         ResultSet rs = con.selectSQL(sql);
         try {
             if(rs.next()) {
-                sql = "DELETE FROM ProjetosInvestigacao WHERE email = '" + email + "' and id = " + id;
+                sql = "DELETE FROM recursosDigitais WHERE id = " + id;
                 int res = con.executeSQL(sql);
                 if (res > 0) {
-                    jsonBuilder.add("info", "ProjetosInvestigacao " + id + " eliminado com sucesso!");
+                    jsonBuilder.add("info", "recursosDigitais " + id + " eliminado com sucesso!");
                 } else {
-                    jsonBuilder.add("info", "ProjetosInvestigacao não existente no professor");
+                    jsonBuilder.add("info", "recursosDigitais não existente no professor");
                 }
 
             }else{
-                jsonBuilder.add("info", "Não existe nenhum ProjetosInvestigacao com esse id!");
+                jsonBuilder.add("info", "Não existe nenhum recursosDigitais com esse id!");
             }
         } catch (Exception e) {
             e.printStackTrace();
