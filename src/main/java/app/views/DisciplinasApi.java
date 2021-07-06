@@ -140,11 +140,11 @@ public class DisciplinasApi extends HttpServlet {
 
     private void alterarString(JsonObjectBuilder jsonBuilder, int id , String string, Conection con, String campo) {
         System.out.println("Entrou no menu para alterar o campo " + campo + " de 1 disciplina");
-        String sql = "SELECT * FROM diciplinas WHERE idDisciplinas = " + id;
+        String sql = "SELECT * FROM disciplinas WHERE idDisciplinas = " + id;
         ResultSet rs = con.selectSQL(sql);
         try {
             if(rs.next()) {
-                sql = "UPDATE diciplinas SET " + campo + " = '" + string + "' WHERE idDisciplinas = " + id;
+                sql = "UPDATE disciplinas SET " + campo + " = '" + string + "' WHERE idDisciplinas = " + id;
                 int res = con.executeSQL(sql);
                 if (res > 0) {
                     jsonBuilder.add("info", campo + " alterado(a) com sucesso!");

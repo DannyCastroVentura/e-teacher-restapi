@@ -6,6 +6,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -47,14 +49,9 @@ public class AreaApi extends HttpServlet {
         Conection con = new Conection();
 
         System.out.println("Entrou no inserir");
-        int idArea = -1;
-        if(body.containsKey("idArea")){
-            idArea = body.getInt("idArea");
-        }
-
         String nome = body.getString("nome");
         String cor = body.getString("cor");
-        adicionarArea(nome, cor, idArea, con, jsonBuilder);
+        adicionarArea(nome, cor, con, jsonBuilder);
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
         jsonWriter.writeObject(jsonBuilder.build());
@@ -70,39 +67,19 @@ public class AreaApi extends HttpServlet {
         resp.setHeader("Access-Control-Allow-Origin", req.getHeader("origin"));
         resp.addHeader("Access-Control-Allow-Credentials", "true");
         Conection con = new Conection();
-        String email = body.getString("email");
-        if(!body.containsKey("fotoPerfil") && !body.containsKey("fotoFundo") && !body.containsKey("password") && !body.containsKey("nome") && !body.containsKey("resumo") && !body.containsKey("exp") && !body.containsKey("idArea"))
-        {
-            alterarBoolean(email, con, jsonBuilder, "estado", true);
-        }else {
-            if(body.containsKey("fotoPerfil")) {
-                String fotoPerfil = body.getString("fotoPerfil");
-                alterarString(jsonBuilder, email, fotoPerfil, con, "fotoPerfil");
-            }
-            if(body.containsKey("fotoFundo")){
-                String fotoFundo = body.getString("fotoFundo");
-                alterarString(jsonBuilder, email, fotoFundo, con, "fotoFundo");
-            }
-            if(body.containsKey("password")){
-                String password = body.getString("password");
-                alterarString(jsonBuilder, email, password, con, "password");
-            }
-            if(body.containsKey("nome")){
-                String nome = body.getString("nome");
-                alterarString(jsonBuilder, email, nome, con, "nome");
-            }
-            if(body.containsKey("resumo")){
-                String resumo = body.getString("resumo");
-                alterarString(jsonBuilder, email, resumo, con, "resumo");
-            }
-            if(body.containsKey("exp")){
-                String exp = body.getString("exp");
-                alterarString(jsonBuilder, email, exp, con, "exp");
-            }
-            if(body.containsKey("idArea")){
-                int idArea = body.getInt("idArea");
-                alterarInt(jsonBuilder, email, idArea, con, "idArea");
-            }
+        final Charset fromCharset = Charset.forName("windows-1252");
+        final Charset toCharset = StandardCharsets.UTF_8;
+        System.out.println("chegou ao alterar area");
+        int id = body.getInt("id");
+        if(body.containsKey("cor")) {
+            String cor = body.getString("cor");
+            String fixed = new String(cor.getBytes(fromCharset), toCharset);
+            alterarString(jsonBuilder, id, fixed, con, "cor");
+        }
+        if(body.containsKey("nome")){
+            String nome = body.getString("nome");
+            String fixed = new String(nome.getBytes(fromCharset), toCharset);
+            alterarString(jsonBuilder, id, fixed, con, "nome");
         }
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
@@ -112,14 +89,47 @@ public class AreaApi extends HttpServlet {
 
     }
 
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        System.out.println("chegou ao doDelete");
+        JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+        JsonObject body = Json.createReader(req.getReader()).readObject();
+        resp.setContentType("application/json");
+        resp.setHeader("Access-Control-Allow-Origin", req.getHeader("origin"));
+        resp.addHeader("Access-Control-Allow-Credentials", "true");
+        Conection con = new Conection();
 
-    private void alterarString(JsonObjectBuilder jsonBuilder, String email, String string, Conection con, String campo) {
+
+        int id = body.getInt("id");
+        apagarArea(jsonBuilder, id, con);
+
+        JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
+        jsonWriter.writeObject(jsonBuilder.build());
+        jsonWriter.close();
+
+    }
+
+    private void apagarArea(JsonObjectBuilder jsonBuilder, int id, Conection con) {
+        System.out.println("Entrou no menu para apagar uma area");
+        String sql = "DELETE FROM areas WHERE idArea = " + id;
+        int res = con.executeSQL(sql);
+        try {
+            if (res > 0) {
+                jsonBuilder.add("info", " area eliminada com sucesso!");
+            } else {
+                jsonBuilder.add("info", "area não existente!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void alterarString(JsonObjectBuilder jsonBuilder, int id, String string, Conection con, String campo) {
         System.out.println("Entrou no menu para alterar o campo " + campo + " de 1 professor");
-        String sql = "SELECT * FROM professores WHERE email = '" + email + "'";
+        String sql = "SELECT * FROM areas WHERE idArea = " + id;
         ResultSet rs = con.selectSQL(sql);
         try {
             if(rs.next()) {
-                sql = "UPDATE professores SET " + campo + " = '" + string + "' WHERE email = '" + email + "'";
+                sql = "UPDATE areas SET " + campo + " = '" + string + "' WHERE idArea = " + id;
                 int res = con.executeSQL(sql);
                 if (res > 0) {
                     jsonBuilder.add("info", campo + " alterado(a) com sucesso!");
@@ -127,7 +137,7 @@ public class AreaApi extends HttpServlet {
                     jsonBuilder.add("info", "Aconteceu algum erro");
                 }
             }else{
-                jsonBuilder.add("info", "Não existe nenhum professor com esse email!");
+                jsonBuilder.add("info", "Não existe nenhuma area com esse id!");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -135,38 +145,11 @@ public class AreaApi extends HttpServlet {
     }
 
 
-
-
-    private void alterarInt(JsonObjectBuilder jsonBuilder, String email, int integer, Conection con, String campo) {
-        System.out.println("Entrou no menu para alterar a foto de perfil de 1 user");
-        String sql = "SELECT * FROM professores WHERE email = '" + email + "'";
-        ResultSet rs = con.selectSQL(sql);
-        try {
-            if(rs.next()) {
-                sql = "UPDATE professores SET " + campo + " = " + integer + " WHERE email = '" + email + "'";
-                int res = con.executeSQL(sql);
-                if (res > 0) {
-                    jsonBuilder.add("info", campo + " alterado(a) com sucesso!");
-                } else {
-                    jsonBuilder.add("info", "Aconteceu algum erro");
-                }
-            }else{
-                jsonBuilder.add("info", "Não existe nenhum professor com esse email!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void adicionarArea(String nome, String cor, int idArea, Conection con, JsonObjectBuilder jsonBuilder) {
-        //Inserir um user
+    private void adicionarArea(String nome, String cor, Conection con, JsonObjectBuilder jsonBuilder) {
+        //Inserir uma area
         System.out.println("Entrou no menu para registar conta");
-        String sql = "INSERT INTO areas (idArea, nome, cor) values " +
-                "(" + idArea + ", '" + nome + "', '" + cor + "')";
-        if(idArea == -1){
-             sql = "INSERT INTO areas (nome, cor) values " +
-                    "('" + nome + "', '" + cor + "')";
-        }
+        String sql = "INSERT INTO areas (nome, cor) values " +
+                "('" + nome + "', '" + cor + "')";
         int res = con.executeSQL(sql);
         if (res > 0) {
             jsonBuilder.add("info", "Area registada com sucesso!");
@@ -175,17 +158,6 @@ public class AreaApi extends HttpServlet {
         }
     }
 
-    private void alterarBoolean(String email, Conection con, JsonObjectBuilder jsonBuilder, String campo, boolean valor) {
-        //alterar um user
-        System.out.println("Entrou no menu para alterar conta");
-        String sql = "UPDATE professores SET " + campo  + " = " + valor + " WHERE email = '" + email + "'";
-        int res = con.executeSQL(sql);
-        if (res > 0) {
-            jsonBuilder.add("info", "Professor alterado com sucesso!");
-        } else {
-            jsonBuilder.add("info", "Aconteceu algum erro");
-        }
-    }
 
     private void mostrarTodasAsAreas(Conection con, JsonObjectBuilder jsonBuilder, boolean existe) {
         System.out.println("Entrou no menu para mostrar todos as areas");
