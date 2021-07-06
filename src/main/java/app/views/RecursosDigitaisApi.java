@@ -28,9 +28,9 @@ public class RecursosDigitaisApi extends HttpServlet {
 
         JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
         if(split.length == 4){
-            mostrarTodosOsProjetosDeInvestigacaoDeUmProfessor(split[3], con, jsonBuilder, false);
+            mostrarTodosOsRecursosDigitaisDeUmProfessor(split[3], con, jsonBuilder, false);
         }else{
-            mostrarTodosOsProjetosDeInvestigacaoDeTodosOsProfessores(con, jsonBuilder, false);
+            mostrarTodosOsRecursosDigitaisDeTodosOsProfessores(con, jsonBuilder, false);
         }
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
         jsonWriter.writeObject(jsonBuilder.build());
@@ -50,25 +50,16 @@ public class RecursosDigitaisApi extends HttpServlet {
         final Charset fromCharset = Charset.forName("windows-1252");
         final Charset toCharset = StandardCharsets.UTF_8;
 
-        if(body.containsKey("email") && body.containsKey("titulo") && body.containsKey("sigla") && body.containsKey("investigadorPrincipal") && body.containsKey("financiador") && body.containsKey("dataInicio")){
-            String email = body.getString("email");
-            String titulo = body.getString("titulo");
-            String sigla = body.getString("sigla");
-            String investigadorPrincipal = body.getString("investigadorPrincipal");
-            String financiador = body.getString("financiador");
-            int dataInicio = body.getInt("dataInicio");
-            int dataFim = 0;
-            if(body.containsKey("dataFim")){
-                dataFim = body.getInt("dataFim");
-            }
+        int id = body.getInt("id");
+        String email = body.getString("email");
+        String descricao = body.getString("descricao");
+        String url = body.getString("url");
 
-            String emailFixed = new String(email.getBytes(fromCharset), toCharset);
-            String tituloFixed = new String(titulo.getBytes(fromCharset), toCharset);
-            String siglaFixed = new String(sigla.getBytes(fromCharset), toCharset);
-            String investigadorPrincipalFixed = new String(investigadorPrincipal.getBytes(fromCharset), toCharset);
-            String financiadorFixed = new String(financiador.getBytes(fromCharset), toCharset);
-            adicionarProjetoInvestigacao(jsonBuilder, emailFixed, tituloFixed, siglaFixed, investigadorPrincipalFixed, financiadorFixed, dataInicio, dataFim, con);
-        }
+        String emailFixed = new String(email.getBytes(fromCharset), toCharset);
+        String descricaoFixed = new String(descricao.getBytes(fromCharset), toCharset);
+        String urlFixed = new String(url.getBytes(fromCharset), toCharset);
+        adicionarRecursoDigital(jsonBuilder, emailFixed, descricaoFixed, urlFixed, con);
+
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
         jsonWriter.writeObject(jsonBuilder.build());
@@ -90,48 +81,15 @@ public class RecursosDigitaisApi extends HttpServlet {
         final Charset fromCharset = Charset.forName("windows-1252");
         final Charset toCharset = StandardCharsets.UTF_8;
 
-        if(body.containsKey("titulo")) {
-            String titulo = body.getString("titulo");
-            String fixed = new String(titulo.getBytes(fromCharset), toCharset);
-            alterarString(jsonBuilder, id, fixed, con, "titulo");
+        if(body.containsKey("descricao")) {
+            String descricao = body.getString("descricao");
+            String fixed = new String(descricao.getBytes(fromCharset), toCharset);
+            alterarString(jsonBuilder, id, fixed, con, "descricao");
         }
-        if(body.containsKey("sigla")){
-            String sigla = body.getString("sigla");
-            String fixed = new String(sigla.getBytes(fromCharset), toCharset);
-            alterarString(jsonBuilder, id, fixed, con, "sigla");
-        }
-        if(body.containsKey("investigadorPrincipal")){
-            String investigadorPrincipal = body.getString("investigadorPrincipal");
-            String fixed = new String(investigadorPrincipal.getBytes(fromCharset), toCharset);
-            alterarString(jsonBuilder, id, fixed, con, "investigadorPrincipal");
-        }
-        if(body.containsKey("financiador")){
-            String financiador = body.getString("financiador");
-            String fixed = new String(financiador.getBytes(fromCharset), toCharset);
-            alterarString(jsonBuilder, id, fixed, con, "financiador");
-        }
-        if(body.containsKey("dataInicio")){
-            int dataInicio = body.getInt("dataInicio");
-            alterarInt(jsonBuilder, id, dataInicio, con, "dataInicio");
-        }
-        if(body.containsKey("dataFim")){
-            int dataFim = body.getInt("dataFim");
-            alterarInt(jsonBuilder, id, dataFim, con, "dataFim");
-        }
-        if(body.containsKey("link")){
-            String link = body.getString("link");
-            String fixed = new String(link.getBytes(fromCharset), toCharset);
-            alterarString(jsonBuilder, id, fixed, con, "link");
-        }
-        if(body.containsKey("imagem")){
-            String imagem = body.getString("imagem");
-            String fixed = new String(imagem.getBytes(fromCharset), toCharset);
-            alterarString(jsonBuilder, id, fixed, con, "imagem");
-        }
-        if(body.containsKey("resumo")){
-            String resumo = body.getString("resumo");
-            String fixed = new String(resumo.getBytes(fromCharset), toCharset);
-            alterarString(jsonBuilder, id, fixed, con, "resumo");
+        if(body.containsKey("url")){
+            String url = body.getString("url");
+            String fixed = new String(url.getBytes(fromCharset), toCharset);
+            alterarString(jsonBuilder, id, fixed, con, "url");
         }
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
@@ -191,11 +149,11 @@ public class RecursosDigitaisApi extends HttpServlet {
 
     private void alterarString(JsonObjectBuilder jsonBuilder, int id, String string, Conection con, String campo) {
         System.out.println("Entrou no menu para alterar o campo " + campo + " de 1 projeto de investigacao");
-        String sql = "SELECT * FROM ProjetosInvestigacao WHERE id = " + id;
+        String sql = "SELECT * FROM recursosDigitais WHERE id = " + id;
         ResultSet rs = con.selectSQL(sql);
         try {
             if(rs.next()) {
-                sql = "UPDATE ProjetosInvestigacao SET " + campo + " = '" + string + "' WHERE id = " + id;
+                sql = "UPDATE recursosDigitais SET " + campo + " = '" + string + "' WHERE id = " + id;
                 int res = con.executeSQL(sql);
                 if (res > 0) {
                     jsonBuilder.add("info", campo + " alterado(a) com sucesso!");
@@ -203,28 +161,7 @@ public class RecursosDigitaisApi extends HttpServlet {
                     jsonBuilder.add("info", "Aconteceu algum erro");
                 }
             }else{
-                jsonBuilder.add("info", "Não existe nenhum projeto de investigacao com esse id!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void alterarInt(JsonObjectBuilder jsonBuilder, int id, int f, Conection con, String campo) {
-        System.out.println("Entrou no menu para alterar o campo " + campo + " de 1 trabalho");
-        String sql = "SELECT * FROM ProjetosInvestigacao WHERE id = " + id;
-        ResultSet rs = con.selectSQL(sql);
-        try {
-            if(rs.next()) {
-                sql = "UPDATE ProjetosInvestigacao SET " + campo + " = " + f + " WHERE id = " + id;
-                int res = con.executeSQL(sql);
-                if (res > 0) {
-                    jsonBuilder.add("info", campo + " alterado(a) com sucesso!");
-                } else {
-                    jsonBuilder.add("info", "Aconteceu algum erro");
-                }
-            }else{
-                jsonBuilder.add("info", "Não existe nenhum projeto de investigacao com esse id!");
+                jsonBuilder.add("info", "Não existe nenhum recurso digital com esse id!");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -234,34 +171,23 @@ public class RecursosDigitaisApi extends HttpServlet {
 
 
 
-    private void adicionarProjetoInvestigacao(JsonObjectBuilder jsonBuilder, String professorEmail, String titulo, String sigla, String investigadorPrincipal, String financiador, int dataInicio, int dataFim, Conection con) {
-        System.out.println("Entrou no menu para adicionar um trabalho a um professor");
-        String sql = "SELECT * FROM professores WHERE email = '" + professorEmail + "'";
-        ResultSet rs = con.selectSQL(sql);
-        try {
-            if(rs.next()) {
-                sql = "INSERT INTO ProjetosInvestigacao (email, titulo, sigla, investigadorPrincipal, financiador, dataInicio, dataFim) values " +
-                        "('" + professorEmail + "', '" + titulo + "', '" + sigla + "', '" + investigadorPrincipal + "', '" + financiador + "', " + dataInicio + ", " + dataFim + ")";
-                int res = con.executeSQL(sql);
-                if (res > 0) {
-                    jsonBuilder.add("info", "Projeto de investigação inserido no professor com sucesso!");
-                } else {
-                    jsonBuilder.add("info", "Aconteceu algum erro");
-                }
-
-            }else{
-                jsonBuilder.add("info", "Não existe nenhum professor com esse email!");
+    private void adicionarRecursoDigital(JsonObjectBuilder jsonBuilder, String professorEmail, String descricao, String url, Conection con) {
+        System.out.println("Entrou no menu para adicionar um recurso digital a um professor");
+            String sql = "INSERT INTO recursosDigitais (email, descricao, url) values " +
+                    "('" + professorEmail + "', '" + descricao + "', '" + url + "')";
+            int res = con.executeSQL(sql);
+            if (res > 0) {
+                jsonBuilder.add("info", "Recurso digital inserido no professor com sucesso!");
+            } else {
+                jsonBuilder.add("info", "Aconteceu algum erro");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 
 
-    private void mostrarTodosOsProjetosDeInvestigacaoDeTodosOsProfessores(Conection con, JsonObjectBuilder jsonBuilder, boolean existe) {
+    private void mostrarTodosOsRecursosDigitaisDeTodosOsProfessores(Conection con, JsonObjectBuilder jsonBuilder, boolean existe) {
         System.out.println("Entrou no menu para mostrar todos os trabalhos de todos os professores");
         System.out.println("This is the Connection: " + con);
-        System.out.println("SQL: SELECT email, nome FROM professores" );
         String sql = "SELECT email, nome FROM professores";
         ResultSet rs = con.selectSQL(sql);
         JsonArrayBuilder professoresBuilder = Json.createArrayBuilder();
@@ -285,7 +211,7 @@ public class RecursosDigitaisApi extends HttpServlet {
 
 
 
-    private void mostrarTodosOsProjetosDeInvestigacaoDeUmProfessor(String s, Conection con, JsonObjectBuilder jsonBuilder, boolean existe) {
+    private void mostrarTodosOsRecursosDigitaisDeUmProfessor(String s, Conection con, JsonObjectBuilder jsonBuilder, boolean existe) {
         System.out.println("Entrou no menu para mostrar todos os trabalhos de um professor");
         System.out.println("SQL: SELECT * FROM professores WHERE email = ' + email + '" );
         String[] split3 = s.split(" ", 2);
@@ -313,47 +239,24 @@ public class RecursosDigitaisApi extends HttpServlet {
         String emailDoProfessorPresenteNaBaseDeDados = rs.getString("email");
         String nomeDoProfessorPresenteNaBaseDeDados = rs.getString("nome");
 
-        String sql = "select * from ProjetosInvestigacao where email = '" + emailDoProfessorPresenteNaBaseDeDados + "'";
+        String sql = "select * from recursosDigitais where email = '" + emailDoProfessorPresenteNaBaseDeDados + "'";
         ResultSet rs2 = con.selectSQL(sql);
         JsonObjectBuilder professoresArrayBuilder = Json.createObjectBuilder();
-        JsonArrayBuilder ProjetosInvestigacaoDoProfessorArray = Json.createArrayBuilder();
-        JsonObjectBuilder ProjetosInvestigacaoArrayBuilder = Json.createObjectBuilder();
+        JsonArrayBuilder RecursosDigitaisDoProfessorArray = Json.createArrayBuilder();
+        JsonObjectBuilder RecursosDigitaisArrayBuilder = Json.createObjectBuilder();
         try{
             while(rs2.next()){
-                int idProjetoInvestigacaoDoTrabalhoPresenteNaBaseDeDados = rs2.getInt("id");
-                String tituloDoProjetoinvestigacaoPresenteNaBaseDeDados = rs2.getString("titulo");
-                String siglaDoProjetoinvestigacaoPresenteNaBaseDeDados = rs2.getString("sigla");
-                String investigadorPrincipalDoProjetoInvestigacaoPresenteNaBaseDeDados = rs2.getString("investigadorPrincipal");
-                String financiadorDoProjetoInvestigacaoPresenteNaBaseDeDados = rs2.getString("financiador");
-                int anoInicioDoProjetoInvestigacaoPresenteNaBaseDeDados = rs2.getInt("dataInicio");
-                int anoFimDoProjetoInvestigacaoPresenteNaBaseDeDados = rs2.getInt("dataFim");
-                String linkDoProjetoInvestigacaoPresenteNaBaseDeDados = rs2.getString("link");
-                String imagemDoProjetoInvestigacaoPresenteNaBaseDeDados = rs2.getString("imagem");
-                String resumoDoProjetoInvestigacaoPresenteNaBaseDeDados = rs2.getString("resumo");
-                if(imagemDoProjetoInvestigacaoPresenteNaBaseDeDados == null){
-                    imagemDoProjetoInvestigacaoPresenteNaBaseDeDados = "https://www.blog.ipv7.com.br/wp-content/uploads/2018/08/Projeto.jpg";
-                }
-                if(linkDoProjetoInvestigacaoPresenteNaBaseDeDados == null){
-                    linkDoProjetoInvestigacaoPresenteNaBaseDeDados = "";
-                }
-                if(resumoDoProjetoInvestigacaoPresenteNaBaseDeDados == null){
-                    resumoDoProjetoInvestigacaoPresenteNaBaseDeDados = "";
-                }
+                int idRecursosDigitaisPresenteNaBaseDeDados = rs2.getInt("id");
+                String descricaoPresenteNaBaseDeDados = rs2.getString("descricao");
+                String urlPresenteNaBaseDeDados = rs2.getString("url");
 
 
-                JsonObject ProjetosInvestigacaoDoProfessorJson = ProjetosInvestigacaoArrayBuilder
-                        .add("id", idProjetoInvestigacaoDoTrabalhoPresenteNaBaseDeDados)
-                        .add("titulo", tituloDoProjetoinvestigacaoPresenteNaBaseDeDados)
-                        .add("sigla", siglaDoProjetoinvestigacaoPresenteNaBaseDeDados)
-                        .add("investigadorPrincipal", investigadorPrincipalDoProjetoInvestigacaoPresenteNaBaseDeDados)
-                        .add("financiador", financiadorDoProjetoInvestigacaoPresenteNaBaseDeDados)
-                        .add("dataInicio", anoInicioDoProjetoInvestigacaoPresenteNaBaseDeDados)
-                        .add("dataFim", anoFimDoProjetoInvestigacaoPresenteNaBaseDeDados)
-                        .add("link", linkDoProjetoInvestigacaoPresenteNaBaseDeDados)
-                        .add("imagem", imagemDoProjetoInvestigacaoPresenteNaBaseDeDados)
-                        .add("resumo", resumoDoProjetoInvestigacaoPresenteNaBaseDeDados).build();
+                JsonObject RecursosDigitaisDoProfessorJson = RecursosDigitaisArrayBuilder
+                        .add("id", idRecursosDigitaisPresenteNaBaseDeDados)
+                        .add("descricao", descricaoPresenteNaBaseDeDados)
+                        .add("url", urlPresenteNaBaseDeDados).build();
 
-                ProjetosInvestigacaoDoProfessorArray.add(ProjetosInvestigacaoDoProfessorJson);
+                RecursosDigitaisDoProfessorArray.add(RecursosDigitaisDoProfessorJson);
 
 
             }
@@ -367,7 +270,7 @@ public class RecursosDigitaisApi extends HttpServlet {
         JsonObject usersJson = professoresArrayBuilder
                 .add("email", emailDoProfessorPresenteNaBaseDeDados)
                 .add("nome", nomeDoProfessorPresenteNaBaseDeDados)
-                .add("projetosInvestigacao", ProjetosInvestigacaoDoProfessorArray).build();
+                .add("recursosDigitais", RecursosDigitaisDoProfessorArray).build();
 
 
 
