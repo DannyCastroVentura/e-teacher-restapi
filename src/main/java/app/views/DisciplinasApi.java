@@ -59,10 +59,18 @@ public class DisciplinasApi extends HttpServlet {
         resp.addHeader("Access-Control-Allow-Credentials", "true");
         Conection con = new Conection();
 
+
+        final Charset fromCharset = Charset.forName("windows-1252");
+        final Charset toCharset = StandardCharsets.UTF_8;
+
         System.out.println("Entrou no inserir");
         String sigla = body.getString("sigla");
         String nome = body.getString("nome");
-        registar(sigla, nome, con, jsonBuilder);
+
+        String siglaFixed = new String(sigla.getBytes(fromCharset), toCharset);
+        String nomeFixed = new String(nome.getBytes(fromCharset), toCharset);
+
+        registar(siglaFixed, nomeFixed, con, jsonBuilder);
 
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());

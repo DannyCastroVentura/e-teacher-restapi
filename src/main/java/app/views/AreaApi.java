@@ -48,10 +48,19 @@ public class AreaApi extends HttpServlet {
         resp.addHeader("Access-Control-Allow-Credentials", "true");
         Conection con = new Conection();
 
+
+
+        final Charset fromCharset = Charset.forName("windows-1252");
+        final Charset toCharset = StandardCharsets.UTF_8;
+
         System.out.println("Entrou no inserir");
         String nome = body.getString("nome");
         String cor = body.getString("cor");
-        adicionarArea(nome, cor, con, jsonBuilder);
+
+        String corFixed = new String(cor.getBytes(fromCharset), toCharset);
+        String nomeFixed = new String(nome.getBytes(fromCharset), toCharset);
+
+        adicionarArea(nomeFixed, corFixed, con, jsonBuilder);
 
         JsonWriter jsonWriter = Json.createWriter(resp.getWriter());
         jsonWriter.writeObject(jsonBuilder.build());
