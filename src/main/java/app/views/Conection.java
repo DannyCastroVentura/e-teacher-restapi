@@ -8,7 +8,7 @@ public class Conection {
     public Conection()
     {
 
-        String url = "jdbc:postgresql://db:5432/finalproject";
+        String url = "jdbc:postgresql://db:5432/postgres";
         String usuario = "postgres";
         String senha = "123";
 

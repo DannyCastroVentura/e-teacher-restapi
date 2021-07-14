@@ -120,6 +120,7 @@ public class AreaApi extends HttpServlet {
 
     private void apagarArea(JsonObjectBuilder jsonBuilder, int id, Conection con) {
         System.out.println("Entrou no menu para apagar uma area");
+        System.out.println("IdArea: " + id);
         String sql = "DELETE FROM areas WHERE idArea = " + id;
         int res = con.executeSQL(sql);
         try {
