@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -132,12 +131,6 @@ public class ProfessoresApi extends HttpServlet {
                 alterarBoolean(emailFixed, con, jsonBuilder, "estado", estado);
             }
 
-            if(body.containsKey("orcidId")){
-                System.out.println("vai alterar o orcidId");
-                String orcidId = body.getString("orcidId");
-                String fixed = new String(orcidId.getBytes(fromCharset), toCharset);
-                alterarString(jsonBuilder, emailFixed, fixed, false, con, "orcidId");
-            }
 
             if(body.containsKey("emailNovo")){
                 String emailNovo = body.getString("emailNovo");
@@ -348,7 +341,6 @@ public class ProfessoresApi extends HttpServlet {
         String resumoPresenteNaBaseDeDados = rs.getString("resumo");
         int expPresenteNaBaseDeDados = rs.getInt("exp");
         String idAreaPresenteNaBaseDeDados = rs.getString("idArea");
-        String orcidIdPresenteNaBaseDeDados = rs.getString("orcidId");
         if(fotoPerfilPresenteNaBaseDeDados == null){
             fotoPerfilPresenteNaBaseDeDados = "https://www.legal-tech.de/wp-content/uploads/Profilbild-Platzhalter.png";
         }
@@ -361,10 +353,6 @@ public class ProfessoresApi extends HttpServlet {
         if(idAreaPresenteNaBaseDeDados == null){
             idAreaPresenteNaBaseDeDados = "";
         }
-        if(orcidIdPresenteNaBaseDeDados == null){
-            orcidIdPresenteNaBaseDeDados = "";
-        }
-
 
         JsonObjectBuilder usersBuilder = Json.createObjectBuilder();
         JsonObject usersJson = usersBuilder
@@ -376,8 +364,7 @@ public class ProfessoresApi extends HttpServlet {
                 .add("fotoFundo", fotoFundoPresenteNaBaseDeDados)
                 .add("resumo", resumoPresenteNaBaseDeDados)
                 .add("exp", expPresenteNaBaseDeDados)
-                .add("idArea", idAreaPresenteNaBaseDeDados)
-                .add("orcidId", orcidIdPresenteNaBaseDeDados).build();
+                .add("idArea", idAreaPresenteNaBaseDeDados).build();
 
         jsonArrayBuilder.add(usersJson);
     }
